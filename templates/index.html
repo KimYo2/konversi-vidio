@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Converter</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
+    />
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+      }
+      .converter-container {
+        max-width: 900px;
+        margin: 0 auto;
+        flex: 1;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .navbar {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        margin-bottom: 2rem;
+      }
+      .navbar-brand {
+        color: white !important;
+        font-weight: bold;
+      }
+      .nav-link {
+        color: rgba(255, 255, 255, 0.8) !important;
+      }
+      .nav-link:hover {
+        color: white !important;
+      }
+      .footer {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 1rem 0;
+        margin-top: 2rem;
+      }
+      .footer a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+      }
+      .footer a:hover {
+        color: white;
+      }
+      .drop-zone {
+        border: 3px dashed #764ba2;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .drop-zone:hover {
+        background: #e9ecef;
+        border-color: #667eea;
+      }
+      .drop-zone.dragover {
+        background: #e9ecef;
+        border-color: #667eea;
+        transform: scale(1.02);
+      }
+      .drop-zone i {
+        font-size: 48px;
+        color: #764ba2;
+        margin-bottom: 15px;
+      }
+      .progress {
+        display: none;
+        margin-top: 20px;
+        height: 25px;
+      }
+      .result {
+        display: none;
+        margin-top: 20px;
+      }
+      .settings-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+      .btn-convert {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 30px;
+        font-size: 1.1em;
+        transition: all 0.3s ease;
+      }
+      .btn-convert:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .file-info {
+        display: none;
+        margin-top: 15px;
+        padding: 10px;
+        background: #e9ecef;
+        border-radius: 5px;
+      }
+      .format-badge {
+        background: #764ba2;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <i class="bi bi-camera-video me-2"></i>Video Converter
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/"
+                ><i class="bi bi-house me-1"></i>Home</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about"
+                ><i class="bi bi-info-circle me-1"></i>About</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/help"
+                ><i class="bi bi-question-circle me-1"></i>Help</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="converter-container">
+      <h1 class="text-center mb-4">
+        <i class="bi bi-film"></i> Video Converter
+      </h1>
+
+      <form id="conversionForm">
+        <div class="drop-zone" id="dropZone">
+          <i class="bi bi-cloud-upload"></i>
+          <h4>Drag & Drop Video Here</h4>
+          <p class="text-muted">or click to select file</p>
+          <input
+            type="file"
+            class="d-none"
+            id="video"
+            name="video"
+            accept=".mp4,.avi,.mov,.mkv,.wmv"
+            required
+            multiple
+          />
+        </div>
+
+        <div class="file-info" id="fileInfo">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <i class="bi bi-file-earmark-play"></i>
+              <span id="fileName"></span>
+            </div>
+            <button type="button" class="btn btn-sm btn-danger" id="removeFile">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <div id="selectedFilesList" class="mt-2"></div>
+        </div>
+
+        <div class="settings-card">
+          <h5 class="mb-3"><i class="bi bi-gear"></i> Conversion Settings</h5>
+          <div class="row d-flex justify-content-around align-items-end">
+            <div class="col-md-4 mb-3">
+              <label for="resolution" class="form-label">Resolution</label>
+              <select
+                class="form-select"
+                id="resolution"
+                name="resolution"
+                required
+              >
+                <option value="144p">144p</option>
+                <option value="240p">240p</option>
+                <option value="360p">360p</option>
+                <option value="480p">480p</option>
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+                <option value="2k">2K</option>
+              </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="bitrate" class="form-label">Bitrate (kbps)</label>
+              <select class="form-select" id="bitrate" name="bitrate" required>
+                <option value="500k">500k</option>
+                <option value="1000k">1000k</option>
+                <option value="2000k">2000k</option>
+                <option value="4000k">4000k</option>
+                <option value="6000k">6000k</option>
+                <option value="8000k">8000k</option>
+                <option value="10000k">10000k</option>
+                <option value="15000k">15000k</option>
+                <option value="20000k">20000k</option>
+                <option value="25000k">25000k</option>
+              </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="format" class="form-label">Format</label>
+              <select class="form-select" id="format" name="format" required>
+                <option value="mp4">MP4</option>
+                <option value="webm">WebM</option>
+                <option value="mkv">MKV</option>
+                <option value="mov">MOV</option>
+                <option value="avi">AVI</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-primary btn-convert">
+            <i class="bi bi-play-fill"></i> Convert Video
+          </button>
+        </div>
+      </form>
+
+      <div class="progress">
+        <div
+          class="progress-bar progress-bar-striped progress-bar-animated"
+          role="progressbar"
+          style="width: 100%"
+        ></div>
+      </div>
+
+      <div class="result alert alert-success" id="resultsDisplay">
+        <!-- Results will be dynamically inserted here -->
+      </div>
+
+      <div
+        class="text-center mt-3"
+        id="convertAnotherBtnContainer"
+        style="display: none"
+      >
+        <button type="button" class="btn btn-secondary" id="convertAnotherBtn">
+          <i class="bi bi-arrow-clockwise me-2"></i> Convert Another Video
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 text-center text-md-start">
+            <p class="mb-0">
+              &copy; 2024 Video Converter. All rights reserved.
+            </p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <a href="#" class="me-3"><i class="bi bi-github"></i></a>
+            <a href="#" class="me-3"><i class="bi bi-twitter"></i></a>
+            <a href="#"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("video");
+      const fileInfo = document.getElementById("fileInfo");
+      const fileNameSpan = document.getElementById("fileName");
+      const removeFileBtn = document.getElementById("removeFile");
+      const selectedFilesList = document.getElementById("selectedFilesList");
+      const progressBar = document.querySelector(".progress");
+      const resultsDisplay = document.getElementById("resultsDisplay");
+      const progressBarInner = progressBar.querySelector(".progress-bar");
+
+      let selectedFiles = [];
+      let conversionTasks = {}; // To store conversion task IDs and their status/elements
+
+      // Drag & Drop functionality
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, highlight, false);
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+      });
+
+      function highlight(e) {
+        dropZone.classList.add("dragover");
+      }
+
+      function unhighlight(e) {
+        dropZone.classList.remove("dragover");
+      }
+
+      dropZone.addEventListener("drop", handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        handleFiles(dt.files);
+      }
+
+      dropZone.addEventListener("click", () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        handleFiles(e.target.files);
+      });
+
+      function handleFiles(files) {
+        // Ensure the progress bar is hidden when new files are selected.
+        progressBar.style.display = "none";
+
+        if (files.length > 0) {
+          Array.from(files).forEach((file) => {
+            const isDuplicate = selectedFiles.some(
+              (existingFile) =>
+                existingFile.name === file.name &&
+                existingFile.size === file.size
+            );
+            if (!isDuplicate && file.type.startsWith("video/")) {
+              selectedFiles.push(file);
+            } else if (isDuplicate) {
+              console.log(`Skipping duplicate file: ${file.name}`);
+            } else {
+              alert(
+                `File ${file.name} is not a valid video file and will be skipped.`
+              );
+            }
+          });
+
+          renderSelectedFiles();
+
+          if (selectedFiles.length > 0) {
+            fileNameSpan.textContent = `${selectedFiles.length} file(s) selected`;
+            fileInfo.style.display = "block";
+          } else {
+            fileInfo.style.display = "none";
+          }
+          dropZone.style.display = "block";
+        }
+        updateFileInput();
+      }
+
+      function renderSelectedFiles() {
+        selectedFilesList.innerHTML = "";
+        selectedFiles.forEach((file) => {
+          const fileItem = document.createElement("div");
+          fileItem.className =
+            "d-flex justify-content-between align-items-center mt-1";
+          fileItem.innerHTML = `
+              <span><i class="bi bi-file-earmark-play"></i> ${file.name}</span>
+              <button type="button" class="btn btn-sm btn-outline-danger remove-individual-file" data-filename="${file.name}">
+                  <i class="bi bi-x"></i>
+                </button>
+            `;
+          selectedFilesList.appendChild(fileItem);
+        });
+      }
+
+      selectedFilesList.addEventListener("click", (e) => {
+        if (e.target.closest(".remove-individual-file")) {
+          const fileNameToRemove = e.target.closest(".remove-individual-file")
+            .dataset.filename;
+          selectedFiles = selectedFiles.filter(
+            (file) => file.name !== fileNameToRemove
+          );
+          if (selectedFiles.length === 0) {
+            removeFileBtn.click();
+          } else {
+            fileNameSpan.textContent = `${selectedFiles.length} file(s) selected`;
+            renderSelectedFiles();
+          }
+          updateFileInput();
+        }
+      });
+
+      removeFileBtn.addEventListener("click", () => {
+        selectedFiles = [];
+        fileInput.value = "";
+        fileInfo.style.display = "none";
+        dropZone.style.display = "block";
+        selectedFilesList.innerHTML = "";
+        resultsDisplay.innerHTML = ""; // This is the master reset for results content
+        resultsDisplay.style.display = "none"; // This is the master reset for results visibility
+        convertAnotherBtnContainer.style.display = "none"; // This is the master reset for the button
+      });
+
+      function updateFileInput() {
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach((file) => dataTransfer.items.add(file));
+        fileInput.files = dataTransfer.files;
+      }
+
+      // Form submission
+      document
+        .getElementById("conversionForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          if (selectedFiles.length === 0) {
+            alert("Please select at least one video file.");
+            return;
+          }
+
+          const form = e.target;
+          const formData = new FormData();
+
+          selectedFiles.forEach((file) => {
+            formData.append("video", file); // Append each file with the same name 'video'
+          });
+          formData.append("resolution", form.elements.resolution.value);
+          formData.append("bitrate", form.elements.bitrate.value);
+          formData.append("format", form.elements.format.value);
+
+          // Show progress bar container, but individual bars will be managed dynamically
+          resultsDisplay.style.display = "none";
+          resultsDisplay.innerHTML = ""; // Clear previous results
+          convertAnotherBtnContainer.style.display = "none";
+
+          try {
+            const response = await fetch("/convert", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json(); // This data now contains task_ids
+
+            if (Array.isArray(data)) {
+              conversionTasks = {}; // Clear previous tasks
+              data.forEach((result) => {
+                const taskItem = document.createElement("div");
+                taskItem.className = "alert alert-info mt-2";
+                taskItem.innerHTML = `
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span><strong>${result.original_filename}</strong>: <span id="status-${result.task_id}">${result.message}</span></span>
+                            <div class="progress" style="width: 150px; height: 20px;">
+                                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="progress-${result.task_id}"></div>
+                            </div>
+                        </div>
+                    `;
+                resultsDisplay.appendChild(taskItem);
+                resultsDisplay.style.display = "block";
+
+                conversionTasks[result.task_id] = {
+                  original_filename: result.original_filename,
+                  progressBarElement: document.getElementById(
+                    `progress-${result.task_id}`
+                  ),
+                  statusElement: document.getElementById(
+                    `status-${result.task_id}`
+                  ),
+                  intervalId: null, // To store the interval ID for polling
+                };
+
+                // Start polling for this task's status
+                startPolling(result.task_id, result.original_filename);
+              });
+            } else {
+              // Handle single error case if it still returns as a single object from backend
+              const resultItem = document.createElement("div");
+              resultItem.className = "alert alert-danger";
+              resultItem.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-x-circle-fill me-2"></i>
+                        <div>
+                            <p class="mb-0">
+                                Error: ${
+                                  data.error ||
+                                  "An unknown error occurred during conversion"
+                                }
+                            </p>
+                        </div>
+                    </div>
+                `;
+              resultsDisplay.appendChild(resultItem);
+              resultsDisplay.style.display = "block";
+              convertAnotherBtnContainer.style.display = "block";
+            }
+          } catch (error) {
+            resultsDisplay.style.display = "block";
+            resultsDisplay.innerHTML = `
+                <div class="alert alert-danger">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-x-circle-fill me-2"></i>
+                        <div>
+                            <p class="mb-0">An error occurred during conversion: ${error.message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            convertAnotherBtnContainer.style.display = "block";
+          } finally {
+            // progressBar.style.display = "none"; // Keep global progress bar visible during polling
+          }
+        });
+
+      const convertAnotherBtn = document.getElementById("convertAnotherBtn");
+      const convertAnotherBtnContainer = document.getElementById(
+        "convertAnotherBtnContainer"
+      );
+
+      convertAnotherBtn.addEventListener("click", () => {
+        removeFileBtn.click(); // This will clear all results and reset the form
+        convertAnotherBtnContainer.style.display = "none"; // Hide itself
+        progressBar.style.display = "none"; // Also hide the global progress bar
+      });
+
+      async function startPolling(taskId, originalFilename) {
+        const task = conversionTasks[taskId];
+        task.intervalId = setInterval(async () => {
+          try {
+            const response = await fetch(`/conversion_status/${taskId}`);
+            const statusData = await response.json();
+
+            if (task.progressBarElement) {
+              task.progressBarElement.style.width = `${statusData.progress}%`;
+              task.progressBarElement.setAttribute(
+                "aria-valuenow",
+                statusData.progress
+              );
+            }
+            if (task.statusElement) {
+              task.statusElement.textContent = statusData.message;
+            }
+
+            if (statusData.status === "completed") {
+              clearInterval(task.intervalId);
+              // Update the specific task item to show download link
+              const completedItem = document
+                .getElementById(`status-${taskId}`)
+                .closest(".alert");
+              if (completedItem) {
+                completedItem.className = "alert alert-success mt-2";
+                completedItem.innerHTML = `
+                              <div class="d-flex align-items-center justify-content-between">
+                                  <span><strong>${originalFilename}</strong>: Conversion successful!</span>
+                                  <a href="${statusData.download_url}" class="btn btn-sm btn-success ms-2" download>Download</a>
+                              </div>
+                          `;
+              }
+              checkAllConversionsCompleted();
+            } else if (statusData.status === "failed") {
+              clearInterval(task.intervalId);
+              const failedItem = document
+                .getElementById(`status-${taskId}`)
+                .closest(".alert");
+              if (failedItem) {
+                failedItem.className = "alert alert-danger mt-2";
+                failedItem.innerHTML = `
+                              <div class="d-flex align-items-center justify-content-between">
+                                  <span><strong>${originalFilename}</strong>: Conversion failed: ${statusData.message}</span>
+                                  <i class="bi bi-x-circle-fill ms-2"></i>
+                              </div>
+                          `;
+              }
+              checkAllConversionsCompleted();
+            }
+          } catch (error) {
+            console.error(`Error polling status for ${taskId}:`, error);
+            clearInterval(task.intervalId);
+            const errorItem = document
+              .getElementById(`status-${taskId}`)
+              .closest(".alert");
+            if (errorItem) {
+              errorItem.className = "alert alert-danger mt-2";
+              errorItem.innerHTML = `
+                          <div class="d-flex align-items-center justify-content-between">
+                              <span><strong>${originalFilename}</strong>: Error retrieving status.</span>
+                              <i class="bi bi-x-circle-fill ms-2"></i>
+                          </div>
+                      `;
+            }
+            checkAllConversionsCompleted();
+          }
+        }, 1000); // Poll every 1 second
+      }
+
+      function checkAllConversionsCompleted() {
+        const allCompleted = Object.values(conversionTasks).every(
+          (task) =>
+            task.statusElement &&
+            (task.statusElement.textContent.includes("successful") ||
+              task.statusElement.textContent.includes("failed") ||
+              task.statusElement.textContent.includes(
+                "Error retrieving status"
+              ))
+        );
+        if (allCompleted) {
+          progressBar.style.display = "none"; // Hide global progress bar
+          convertAnotherBtnContainer.style.display = "block"; // Show 'Convert Another Video' button
+        }
+      }
+    </script>
+  </body>
+</html>
