@@ -1,31 +1,27 @@
-# Menggunakan Python 3.9 slim sebagai base image untuk ukuran yang lebih kecil
+# Gunakan image Python resmi sebagai base image
 FROM python:3.9-slim-buster
 
-# Mengatur working directory di dalam container
+# Instal FFmpeg dan dependensi lainnya
+# slim-buster based images uses apt-get
+RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Atur direktori kerja di dalam container
 WORKDIR /app
 
-# Menginstal FFmpeg dan dependensi lain yang diperlukan
-# FFmpeg diperlukan untuk operasi konversi video
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Menyalin requirements.txt dan menginstal dependensi Python
+# Salin requirements.txt dan instal dependensi Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Menyalin sisa kode aplikasi ke dalam container
+# Salin sisa kode aplikasi
 COPY . .
 
-# Mengatur variabel lingkungan untuk Flask
-ENV FLASK_APP=app.py
-ENV FLASK_ENV=production
+# Buat folder uploads jika belum ada (untuk pengembangan lokal/jika diperlukan di server ephemeral)
+RUN mkdir -p uploads
 
-# Membuka port 5000 (port default untuk Gunicorn di Heroku)
+# Ekspos port yang digunakan aplikasi Flask (default: 5000)
 EXPOSE 5000
 
-# Menjalankan aplikasi menggunakan Gunicorn (sesuai dengan Procfile)
-# Perintah ini akan dioverride oleh Procfile di Heroku, tapi ini adalah default yang baik
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"] 
+# Perintah untuk menjalankan aplikasi menggunakan Gunicorn
+# Gunicorn akan berjalan pada port yang ditentukan oleh Railway (PORT environment variable)
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "app:app"] 
