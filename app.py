@@ -94,7 +94,7 @@ def convert_video(input_path, output_path, resolution, bitrate, format_type, tas
             'ffmpeg',
             '-i', input_path,
             '-loglevel', 'verbose',
-            '-preset', 'medium',
+            '-preset', 'fast',
             '-crf', '18',
             '-b:v', bitrate,
             '-maxrate', bitrate,
